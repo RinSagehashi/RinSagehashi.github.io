@@ -3,95 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <title>JavaScriptでライフゲーム</title>
-
-<script type="text/javascript">
-function lifeGame() {
-//描画コンテキストの取得
-var canvas = document.getElementById("myCanvas");
-if (!canvas || !canvas.getContext) {return false;}
-var context = canvas.getContext('2d');
-
-// ピクセル情報の取得
-var imageData = context.getImageData(0,0,canvas.width,canvas.height);
-var pixels = imageData.data;
-var width = imageData.width;
-var height = imageData.height;
-
-// セル
-var field = new Array(canvas.width*canvas.height);　// 現状態
-var tmpField = new Array(canvas.width*canvas.height); // 次状態
-
-// 初期局面の生成
-for(var i=0; i<field.length; i++) {
-  field[i] = (Math.floor(Math.random()*5) == 0)?1:0;
-}
-
-function draw(){
-  for(var y=0; y < height; y++) {
-    for(var x=0; x < width; x++) {
-      var base = (y * width + x) * 4;
-      
-      if(field[y*width+x] == 1) {　// 生存カラー
-        pixels[base + 0] = 0; // RED
-        pixels[base + 1] = 255;　// GREEN
-        pixels[base + 2] = 0; // BLUE
-        pixels[base + 3] = 255; // ALPHA
-      } else {
-        pixels[base + 0] = 0; // RED
-        pixels[base + 1] = 0; // GREEN
-        pixels[base + 2] = 0; // BLUE
-        pixels[base + 3] = 0; // ALPHA
-      }
-    }
-  }
-  
-  // 変更を反映
-  context.putImageData(imageData, 0, 0);
-}
-
-function update(){
-  // 描画
-  draw();
-  
-  // 生死判定
-  for(var y=0; y<height; y++) {
-    for(var x=0; x<width; x++) {
-      var cell = 0;
-      for(var i=-1; i<=+1; i++) {
-        for(var j=-1; j<=+1; j++) {
-          var neighbor = ((height+(y+i))%height)*width + ((width+(x+j))%width);
-          cell += field[neighbor];
-        }
-      }
-      cell += field[y*width+x]*8; // (x,y)が生きているなら+8,死んでいるなら+0
-      if(cell==3||cell==9+2||cell==9+3) {
-        tmpField[y*width+x]=1;
-      } else {
-        tmpField[y*width+x]=0;
-      }
-    }
-  }
-  
-  // Shallow Copy 
-  field = [].concat(tmpField);
-  
-  // 200ミリ秒毎に更新
-  setTimeout(update,200);
-}
-
-update();
-}
-</script>
-
 </head>
 <body>
 <h2>Conway's Game of Life</h2>
 <canvas id="myCanvas" style="background-color:black;"
-        width="500" height="500">
+        width="256" height="256">
 <p>図形を表示するには、canvasタグをサポートしたブラウザが必要です。</p>
 </canvas>
 <form>
-<p><input type="button" value="RUN" onclick="lifeGame()"></p>
+<!-- <p><input type="button" value="RUN" onclick="lifeGame()"></p> -->
+<p>
+  <button id="myButton" type="button">RUN</button>
+</p>
 </form>
+<script type="text/javascript">
+  //描画コンテキストの取得
+  var canvas = document.getElementById("myCanvas");
+  var context = canvas.getContext('2d');
+  var button = document.getElementById('myButton');
+
+  // ピクセル情報の取得
+  var imageData = context.getImageData(0,0,canvas.width,canvas.height);
+  var pixels = imageData.data;
+  var cells = new Uint8ClampedArray(pixels.length);
+  
+  button.onclick = function() {
+    console.log('test');
+    for (var i=0; i<pixels.length; i+=4) {
+      cells[i]=(i/10)%255;
+      cells[i+3]=i%255;
+    }
+    ;
+    context.putImageData(imageData, 0, 0);
+  };
+  
+// function lifeGame() {
+//   // 初期局面の生成
+//   for(var i=0; i<field.length; i++) {
+//     field[i] = (Math.floor(Math.random()*5) == 0)?1:0;
+//   }
+
+//   if(timerID) {
+//     clearTimeout(timerID);
+//     console.log(timerID.toString())
+//   }
+//   var timerID = setTimeout(update,500);
+
+//   function draw(){
+//     for(var y=0; y < height; y++) {
+//       for(var x=0; x < width; x++) {
+//         var base = (y * width + x) * 4;
+        
+//         if(field[y*width+x] == 1) {　// 生存カラー
+//           pixels[base + 0] = 0; // RED
+//           pixels[base + 1] = 255;　// GREEN
+//           pixels[base + 2] = 0; // BLUE
+//           pixels[base + 3] = 255; // ALPHA
+//         } else {
+//           pixels[base + 0] = 0; // RED
+//           pixels[base + 1] = 0; // GREEN
+//           pixels[base + 2] = 0; // BLUE
+//           pixels[base + 3] = 0; // ALPHA
+//         }
+//       }
+//     }
+
+//     // 変更を反映
+//     context.putImageData(imageData, 0, 0);
+//   }
+
+//   function update(){
+//     // 描画
+//     draw();
+    
+//     // 生死判定
+//     for(var y=0; y<height; y++) {
+//       for(var x=0; x<width; x++) {
+//         var cell = 0;
+//         for(var i=-1; i<=+1; i++) {
+//           for(var j=-1; j<=+1; j++) {
+//             var neighbor = ((height+(y+i))%height)*width + ((width+(x+j))%width);
+//             cell += field[neighbor];
+//           }
+//         }
+//         cell += field[y*width+x]*8; // (x,y)が生きているなら+8,死んでいるなら+0
+//         if(cell==3||cell==9+2||cell==9+3) {
+//           tmpField[y*width+x]=1;
+//         } else {
+//           tmpField[y*width+x]=0;
+//         }
+//       }
+//     }
+    
+//     // Shallow Copy 
+//     field = [].concat(tmpField);
+    
+//     // 200ミリ秒毎に更新
+//     timerID = setTimeout(update,500);
+//   }
+// }
+</script>
 </body>
 </html> 
