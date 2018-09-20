@@ -21,8 +21,8 @@
     var button = document.getElementById("myButton");
 
     //キャンバスサイズを取得
-    var width = canvas.width/2;
-    var height = canvas.height/2;
+    var width = canvas.width;
+    var height = canvas.height;
 
     //ImageDataを作成
     var ImageData = [new ImageData(width, height), new ImageData(width, height)];
@@ -38,21 +38,41 @@
         update();
     };
 
+    var mousePos = {x:-1,y:-1};
+
+    //マウス座標取得
+    function getMousePosition(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: Math.floor(evt.clientY - rect.top)
+        };
+    }
+
+    document.addEventListener('mousemove', function(evt){
+            mousePos = getMousePosition(canvas, evt);    
+            }, false);
+
     function initialize() {
         var length  = pixels[0].length;
         for (var i=0; i<length; i+=4) {
             pixels[0][i+0]=pixels[1][i+0]=color[0]; // Red
             pixels[0][i+1]=pixels[1][i+1]=color[1]; // Green
             pixels[0][i+2]=pixels[1][i+2]=color[2]; // Blue
-            pixels[0][i+3]=0xff * (Math.floor(Math.random()*8)==0); // Alpha
-            pixels[1][i+3]=0x00;
+            //pixels[0][i+3]=0xff * (Math.floor(Math.random()*8)==0); // Alpha
+            pixels[0][i+3]=pixels[1][i+3]=0x00;
         }
         state=0;
     }
 
     function update() {
+        //次の明るさを取得
         function getNextAlpha(i) {
             var y = Math.floor(i / height);
+            var x = i % width;
+            if (Math.floor(mousePos.x/3) == Math.floor(x/3) && Math.floor(mousePos.y/3) == Math.floor(y/3)) {
+                return 0xff;
+            }
             var neighborhood = (pixels[state][i*4+3]>0) * 8;
             for(var dx = -1; dx <= +1; dx++) {
                 for(var dy = -1; dy <= +1; dy++) {
@@ -60,12 +80,17 @@
                 }
             }
             if(neighborhood==3 || neighborhood==11 || neighborhood==12) {
-                return 0xff;
+                if(pixels[state][i*4+3]==0) {
+                    return 0xff;
+                } else {
+                    // 長生きするほど暗くする
+                    return pixels[state][i*4+3]-1;
+                }
             }
             return 0;
         }
         draw();
-        setTimeout(update, 1000/60);
+        setTimeout(update, 1000/60); //30fps
 
         // 色更新
         if(color[0]==0xff && color[2]>0) color[2]--;
@@ -76,7 +101,7 @@
         else color[0]++;
 
         // 生死更新
-        var length = pixels[0].length/4;
+        var length = pixels[0].length / 4;
         var nState = state^1;
         for(var i=0; i<length; i++) {
             pixels[nState][4*i+3] = getNextAlpha(i);
@@ -89,9 +114,6 @@
 
     function draw() {
         context.putImageData(ImageData[state], 0, 0);
-        context.putImageData(ImageData[state], 0, height);
-        context.putImageData(ImageData[state], width, 0);
-        context.putImageData(ImageData[state], width, height);
     }
 </script>
 </body>

@@ -31,6 +31,7 @@
     //状態変数
     var state = 0;
 
+    //var color = [0, 0xff, 0];
     var color = new Uint8ClampedArray([0,0xff,0]);
 
     button.onclick = function() {
@@ -60,7 +61,13 @@
                 }
             }
             if(neighborhood==3 || neighborhood==11 || neighborhood==12) {
-                return 0xff;
+                if(pixels[state][i*4+3]==0) {
+                    return 0xff;
+                } else {
+                    // 長生きするほど暗くする
+                    return pixels[state][i*4+3]-1;
+                    return 0xff;
+                }
             }
             return 0;
         }
@@ -76,9 +83,9 @@
         else color[0]++;
 
         // 生死更新
-        var length = pixels[0].length/4;
+        var length = pixels[0].length;
         var nState = state^1;
-        for(var i=0; i<length; i++) {
+        for(var i=0; i<length/4; i++) {
             pixels[nState][4*i+3] = getNextAlpha(i);
             pixels[nState][4*i+0] = color[0];
             pixels[nState][4*i+1] = color[1];
